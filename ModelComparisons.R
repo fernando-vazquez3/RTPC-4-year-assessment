@@ -257,7 +257,7 @@ for (Type in c("C-classification","nu-classification")){
     if (Kernel =="polydot"){
       for(Degree in 1:2) {
         SVM_mod=cvError.SVM(type=Type,kernel=Kernel,degree=Degree)
-        SVMResults=rbind(SVMResults, c(Data,Type,Kernel,SVM_mod$Mean,SVM_mod$SE))
+        SVMResults=rbind(SVMResults, data.frame(Data,Type,Kernel,SVM_mod$Mean,SVM_mod$SE))
         SVMResultsComplete=rbind(SVMResultsComplete, data.frame(Data,Type,Kernel,SVM_mod$Performance.Measures[,1:4]))
         }
       }
