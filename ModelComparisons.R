@@ -16,13 +16,19 @@ RFE_NB =tibble(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTP
 RFE_CF =tibble(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/RFE_CF.csv"))
 
 #Folds
-devtools::install_github("CCMH-PSU/CCMHr")
+#devtools::install_github("CCMH-PSU/CCMHr")
 
-F1 = as.character(loadRDa("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F1.rda"))
-F2 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F2.csv"))
-F3 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F3.csv"))
-F4 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F4.csv"))
-F5 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F5.csv"))
+#F1 = as.character(loadRDa("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F1.rda"))
+#F2 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F2.csv"))
+#F3 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F3.csv"))
+#F4 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F4.csv"))
+#F5 = c(read.csv("https://raw.githubusercontent.com/fernando-vazquez3/RTPC-4-year-assessment/master/F5.csv"))
+
+F1= c(64, 85, 91, 72, 83, 98, 116, 67, 87, 73, 76, 57, 6, 39, 50, 22, 3, 42, 55, 32, 49, 26, 44)
+F2= c(100, 82, 113, 90, 61, 79, 105, 86, 77, 96, 102, 56, 35, 5, 30, 38, 19, 59, 13, 41, 8, 58, 45)
+F3= c(75, 97, 70, 69, 89, 84, 94, 115, 93, 106, 99, 16, 51, 18, 37, 40, 9, 47, 23, 17, 27, 48, 52)
+F4= c(92, 80, 109, 112, 62, 111, 103, 88, 81, 108, 104, 7, 46, 11, 28, 10, 31, 43, 21, 14, 54, 24, 4)
+F5= c(1, 2, 12, 15, 20, 25, 29, 33, 34, 36, 53, 60, 63, 65, 66, 68, 71, 74, 78, 95, 101, 107, 110, 114)
 
 Folds=list(F1,F2,F3,F4,F5)
 numeric=c(5,0,3,0,0,5)
