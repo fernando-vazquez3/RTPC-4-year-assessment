@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(tibble)
 library(smotefamily)
 library(devtools)
 
@@ -84,24 +85,19 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   
   #Now we rebuild the data set which is ready
   data=resample$data
-  Y = c(data$class)
+  Y = data.frame(c(data$class))
   X = data.frame(data[1:ncol(data)-1])
   data=cbind(X,Y)
   data[,ncol(data)]=as.character(data[,ncol(data)])
-  
+ 
+  data[,(numeric[Data]+1):(ncol(data)-1)]=round(data[,(numeric[Data]+1):(ncol(data)-1)])
+  data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
+
   if(numeric[Data]>0){
     data[,1:numeric[Data]]<- lapply(data[, 1:numeric[Data]], as.numeric)
-    data[,(numeric[Data]+1):(ncol(data)-1)]=round(data[,(numeric[Data]+1):(ncol(data)-1)],4)
-    
-    data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
   }
-  
-    data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
-  
+   
+ 
   
 for (nTrees in seq(25,300,25))
 {
@@ -141,24 +137,21 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   
   #Now we rebuild the data set which is ready
   data=resample$data
-  Y = c(data$class)
+  Y = data.frame(c(data$class))
   X = data.frame(data[1:ncol(data)-1])
   data=cbind(X,Y)
   data[,ncol(data)]=as.character(data[,ncol(data)])
   
-  if(numeric[i]>0){
-    data[,1:numeric[i]]<- lapply(data[, 1:numeric[i]], as.numeric)
-    data[,(numeric[i]+1):(ncol(data)-1)]=round(data[,(numeric[i]+1):(ncol(data)-1)],4)
-    
-    data[,(numeric[i]+1):ncol(data)]<- lapply(data[, (numeric[i]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
+  data[,(numeric[Data]+1):(ncol(data)-1)]=round(data[,(numeric[Data]+1):(ncol(data)-1)])
+  data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
+  
+  if(numeric[Data]>0){
+    data[,1:numeric[Data]]<- lapply(data[, 1:numeric[Data]], as.numeric)
   }
-  else{
-    data[,(numeric[i]+1):ncol(data)]<- lapply(data[, (numeric[i]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
-  }
+  
+  
+
+
 for (minSplit in 5:10)
 {
   for (minBucket in 3:7)
@@ -188,6 +181,7 @@ print(rpart)
 #............................  LDA  ..........................
 LDAResults=NULL
 LDAResultsComplete=NULL
+
 for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   data=Datasets[[Data]]
   data[,1:ncol(data)]<- lapply(data[,1:ncol(data)], as.numeric)
@@ -199,24 +193,20 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   
   #Now we rebuild the data set which is ready
   data=resample$data
-  Y = c(data$class)
+  Y = data.frame(c(data$class))
   X = data.frame(data[1:ncol(data)-1])
   data=cbind(X,Y)
   data[,ncol(data)]=as.character(data[,ncol(data)])
   
-  if(numeric[i]>0){
-    data[,1:numeric[i]]<- lapply(data[, 1:numeric[i]], as.numeric)
-    data[,(numeric[i]+1):(ncol(data)-1)]=round(data[,(numeric[i]+1):(ncol(data)-1)],4)
-    
-    data[,(numeric[i]+1):ncol(data)]<- lapply(data[, (numeric[i]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
+  data[,(numeric[Data]+1):(ncol(data)-1)]=round(data[,(numeric[Data]+1):(ncol(data)-1)])
+  data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
+  
+  if(numeric[Data]>0){
+    data[,1:numeric[Data]]<- lapply(data[, 1:numeric[Data]], as.numeric)
   }
-  else{
-    data[,(numeric[i]+1):ncol(data)]<- lapply(data[, (numeric[i]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
-  }
+  
+  
+
 for (mLDA in c("moment","mle","t"))
 {
   LDA_mod=cvError.LDA(mLDA=mLDA)
@@ -236,6 +226,7 @@ print(LDA)
 # #..................................SVM................................................
 SVMResults=NULL
 SVMResultsComplete=NULL
+
 for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   data=Datasets[[Data]]
   data[,1:ncol(data)]<- lapply(data[,1:ncol(data)], as.numeric)
@@ -247,24 +238,20 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   
   #Now we rebuild the data set which is ready
   data=resample$data
-  Y = c(data$class)
+  Y = data.frame(c(data$class))
   X = data.frame(data[1:ncol(data)-1])
   data=cbind(X,Y)
   data[,ncol(data)]=as.character(data[,ncol(data)])
   
-  if(numeric[i]>0){
-    data[,1:numeric[i]]<- lapply(data[, 1:numeric[i]], as.numeric)
-    data[,(numeric[i]+1):(ncol(data)-1)]=round(data[,(numeric[i]+1):(ncol(data)-1)],4)
-    
-    data[,(numeric[i]+1):ncol(data)]<- lapply(data[, (numeric[i]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
+  data[,(numeric[Data]+1):(ncol(data)-1)]=round(data[,(numeric[Data]+1):(ncol(data)-1)])
+  data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
+  
+  if(numeric[Data]>0){
+    data[,1:numeric[Data]]<- lapply(data[, 1:numeric[Data]], as.numeric)
   }
-  else{
-    data[,(numeric[i]+1):ncol(data)]<- lapply(data[, (numeric[i]+1):ncol(data)], as.factor)
-    ycol=ncol(data)
-    names(data[ycol])="Y"
-  }
+  
+  
+
 for (Type in c("C-classification","nu-classification")){
   for (Kernel in c("vanilladot","polydot","rbfdot",)){
     if (Kernel =="polydot"){
@@ -284,22 +271,49 @@ SE.maxDesirability=filter(SVMResultsComplete,Mean.Desirability==max(Mean.Desirab
 SVMResultsComplete=filter(SVMResultsComplete,Mean.Desirability>=maxDesirability-SE.maxDesirability)
 SVMResultsComplete
 
+
+#.............................Logistic................................................
 LogResults=NULL
 LogResultsComplete=NULL
+
+for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
+  data=Datasets[[Data]]
+  data[,1:ncol(data)]<- lapply(data[,1:ncol(data)], as.numeric)
+  table(data$Y)
+  
+  #SMOTe resampling data
+  resample=SMOTE(X=data[,-ncol(data)],target=as.vector(data$Y),K=3,dup_size=1)
+  table(resample$data$class)
+  
+  #Now we rebuild the data set which is ready
+  data=resample$data
+  Y = data.frame(c(data$class))
+  X = data.frame(data[1:ncol(data)-1])
+  data=cbind(X,Y)
+  data[,ncol(data)]=as.character(data[,ncol(data)])
+  
+  data[,(numeric[Data]+1):(ncol(data)-1)]=round(data[,(numeric[Data]+1):(ncol(data)-1)])
+  data[,(numeric[Data]+1):ncol(data)]<- lapply(data[, (numeric[Data]+1):ncol(data)], as.factor)
+  
+  if(numeric[Data]>0){
+    data[,1:numeric[Data]]<- lapply(data[, 1:numeric[Data]], as.numeric)
+  }
+
+
 for (mLink in c("logit","probit","cauchit"))
 {
   for (threshold in seq(0.4,0.9,0.05))
   {
     Log_mod=cvError.Log(mLink=mLink,threshold=threshold)
-    LogResults=rbind(LogResults, c(mLink,threshold,Log_mod$Mean,Log_mod$SE))
-    LogResultsComplete=rbind(LogResultsComplete, data.frame(mLink,threshold,t(Log_mod$meanPM),Log_mod$SE))
+    LogResults=rbind(LogResults, data.frame(Data,mLink,threshold,Log_mod$Mean,Log_mod$SE))
+    LogResultsComplete=rbind(LogResultsComplete, data.frame(Data,mLink,threshold,t(Log_mod$meanPM),Log_mod$SE))
+  }
   }
 }
-
 LogReg=na.omit(LogResultsComplete)
 LogReg=data.frame(LogReg,transmute(LogReg,nDesirability=Desirability/max(Desirability)))
-LogTest=data.frame(LogReg %>% group_by(mLink,threshold)) %>% drop_na()
+LogTest=data.frame(LogReg %>% group_by(Data,mLink,threshold)) %>% drop_na()
 maxDesirability=filter(LogTest,Desirability==max(Desirability))$Desirability
 SE.maxDesirability=filter(LogReg,Log_mod.SE ==max(Log_mod.SE))$Log_mod.SE
 LogReg=filter(LogReg,Desirability>=maxDesirability-SE.maxDesirability)
-print(LDA)
+print(LogReg)
