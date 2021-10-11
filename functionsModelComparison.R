@@ -53,8 +53,10 @@ cvError.RF=function(k=5,ntree=nTrees,maxnodes=mNodes,mtry=mTry,PM=NULL)
   performanceMeasure=round(performanceMeasure,4)
   meanDesirability=unname(meanRF[length(meanRF)])
   seDesirability=unname(seRF[length(meanRF)])
-  output=list(meanDesirability,seDesirability,performanceMeasure,meanRF,seRF)
-  names(output)=c("Mean","SE","Performance.Measures","meanPM","sePM")
+  parameters=c(nTrees,mNodes,mTry)
+  names(parameters)=c("nTrees","mNodes","mTry")
+  output=list(parameters,meanDesirability,seDesirability,performanceMeasure,meanRF,seRF)
+  names(output)=c("Parameters","Mean","SE","Performance.Measures","meanPM","sePM")
   return(output)
   
 }
@@ -77,7 +79,7 @@ cvError.RPART=function(X,Y,k=5,minsplit=minSplit, minbucket=minBucket,cp=Cp,maxd
   
   #Fit model and estimate error
   for(i in 1:nFolds){
-    assign(paste("F",i,sep=""),data[unlist(Folds[[i]]),])
+    assign(paste("F",i,sep=""),data[unlist(Folds[i]),])
     testing=get(paste("F",i,sep=""))
     trainingRows=setdiff(1:nrow(data),as.numeric(row.names(testing)))
     training=data[trainingRows,]
@@ -116,12 +118,76 @@ cvError.RPART=function(X,Y,k=5,minsplit=minSplit, minbucket=minBucket,cp=Cp,maxd
   performanceMeasure=round(performanceMeasure,4)
   meanDesirability=unname(meanRPART[length(meanRPART)])
   seDesirability=unname(seRPART[length(meanRPART)])
-  output=list(meanDesirability,seDesirability,performanceMeasure,meanRPART,seRPART)
-  names(output)=c("Mean","SE","Performance.Measures","meanPM","sePM")
+  parameters=c(minSplit,minBucket,Cp,maxDepth)
+  names(parameters)=c("minSplit","minBucket","Cp","maxDepth")
+  output=list(parameters,meanDesirability,seDesirability,performanceMeasure,meanRPART,seRPART)
+  names(output)=c("Parameters","Mean","SE","Performance.Measures","meanPM","sePM")
   return(output)
 }
 
-#................................SVM................................
+#................................SVM - poly................................
+cvError.SVMpoly=function(X,Y,k=5,type=Type,kernel=Kernel,degree=Degree)
+{
+  library(kernlab)
+  library(psych)
+  library(PRROC)
+  library(caret)
+  data=data.frame(data)
+  ycol=ncol(data)
+  names(data[ycol])="Y"
+  nFolds=k
+  performanceMeasureSVM=matrix(nrow=length(metrics),ncol=nFolds)
+  
+  
+  #Fit model and estimate error
+  for(i in 1:nFolds){
+    assign(paste("F",i,sep=""),data[unlist(Folds[[i]]),])
+    testing=get(paste("F",i,sep=""))
+    trainingRows=setdiff(1:nrow(data),as.numeric(row.names(testing)))
+    training=data[trainingRows,]
+    names(training)[ncol(training)]="Y"
+    names(testing)[ncol(testing)]="Y"
+    actual=testing$Y
+    
+    mySVM = ksvm(Y~.,data=training,type=Type,kernel=Kernel,kpar=list(degree=Degree)) 
+    predictedSVM=as.factor(as.numeric(as.character(predict(mySVM,newdata=testing))))
+    levels(predictedSVM)=c("0","1")
+    cmSVM=confusionMatrix(data=predictedSVM,reference=actual)
+    
+    #error
+    performanceMeasureSVM[1,i]=unname((cmSVM$overall['Accuracy']))
+    #kappa
+    performanceMeasureSVM[2,i]=unname((cmSVM$overall['Kappa']))  
+    #F1
+    cmSVM[["byClass"]]["F1"][is.na(cm[["byClass"]]["F1"])] = 0
+    performanceMeasureSVM[3,i]=unname(mean(cmSVM[["byClass"]]["F1"]))
+   
+    for(j in 4:length(metrics)-1){
+      cmSVM[["byClass"]][metrics[j]][is.na(cmSVM[["byClass"]][metrics[j]])] = 0
+      performanceMeasureSVM[j,i]=unname(mean(cmSVM[["byClass"]][metrics[j]]))
+    }
+    
+    #Desirability 
+    performanceMeasureSVM[length(metrics),i]=sum((3/14)*(performanceMeasureSVM[1:3,i]))+sum((1/14)*(performanceMeasureSVM[4:(length(metrics)-1),i]))
+    
+  }
+  colnames(performanceMeasureSVM) = c(names(Folds))
+  rownames(performanceMeasureSVM) = metrics
+  meanSVM = round(rowMeans(performanceMeasureSVM),4)
+  seSVM =round(c(((apply(performanceMeasureSVM[1:(length(metrics)-1),],1,sd)/sqrt(5))),sqrt(sum(((3/14)^2)*(apply(performanceMeasureSVM[1:3,],1,sd)^2/5))+sum(((1/14)^2)*(apply(performanceMeasureSVM[4:(length(metrics)-1),],1,sd)^2/5)))),4)
+  performanceMeasure=data.frame(performanceMeasureSVM)
+  
+  performanceMeasure=round(performanceMeasure,4)
+  meanDesirability=unname(meanSVM[length(meanSVM)])
+  seDesirability=unname(seSVM[length(meanSVM)])
+  parameters=c(Type,Kernel,Degree)
+  names(parameters)=c("Type","Kernel","Degree")
+  output=list(parameters,meanDesirability,seDesirability,performanceMeasure,meanSVM,seSVM)
+  names(output)=c("Parameters","Mean","SE","Performance.Measures","meanPM","sePM")
+  return(output)
+}
+
+#................................SVM - no-poly................................
 cvError.SVM=function(X,Y,k=5,type=Type,kernel=Kernel)
 {
   library(kernlab)
@@ -145,7 +211,7 @@ cvError.SVM=function(X,Y,k=5,type=Type,kernel=Kernel)
     names(testing)[ncol(testing)]="Y"
     actual=testing$Y
     
-    mySVM = ksvm(formula = Y ~ ., data = training, type = Type, kernel = Kernel, kpar=list(degree=Degree)) 
+    mySVM = ksvm(Y~.,data=training,type=Type,kernel=Kernel) 
     predictedSVM=as.factor(as.numeric(as.character(predict(mySVM,newdata=testing))))
     levels(predictedSVM)=c("0","1")
     cmSVM=confusionMatrix(data=predictedSVM,reference=actual)
@@ -157,10 +223,10 @@ cvError.SVM=function(X,Y,k=5,type=Type,kernel=Kernel)
     #F1
     cmSVM[["byClass"]]["F1"][is.na(cm[["byClass"]]["F1"])] = 0
     performanceMeasureSVM[3,i]=unname(mean(cmSVM[["byClass"]]["F1"]))
-   
+    
     for(j in 4:length(metrics)-1){
-      cmRF[["byClass"]][metrics[j]][is.na(cmRF[["byClass"]][metrics[j]])] = 0
-      performanceMeasureRF[j,i]=unname(mean(cmRF[["byClass"]][metrics[j]]))
+      cmSVM[["byClass"]][metrics[j]][is.na(cmSVM[["byClass"]][metrics[j]])] = 0
+      performanceMeasureSVM[j,i]=unname(mean(cmSVM[["byClass"]][metrics[j]]))
     }
     
     #Desirability 
@@ -171,15 +237,18 @@ cvError.SVM=function(X,Y,k=5,type=Type,kernel=Kernel)
   rownames(performanceMeasureSVM) = metrics
   meanSVM = round(rowMeans(performanceMeasureSVM),4)
   seSVM =round(c(((apply(performanceMeasureSVM[1:(length(metrics)-1),],1,sd)/sqrt(5))),sqrt(sum(((3/14)^2)*(apply(performanceMeasureSVM[1:3,],1,sd)^2/5))+sum(((1/14)^2)*(apply(performanceMeasureSVM[4:(length(metrics)-1),],1,sd)^2/5)))),4)
-  performanceMeasureSVM=data.frame(performanceMeasureSVM)
+  performanceMeasure=data.frame(performanceMeasureSVM)
   
   performanceMeasure=round(performanceMeasure,4)
   meanDesirability=unname(meanSVM[length(meanSVM)])
   seDesirability=unname(seSVM[length(meanSVM)])
-  output=list(meanDesirability,seDesirability,performanceMeasure,meanSVM,seSVM)
-  names(output)=c("Mean","SE","Performance.Measures","meanPM","sePM")
+  parameters=c(Type,Kernel,Degree)
+  names(parameters)=c("Type","Kernel","Degree")
+  output=list(parameters,meanDesirability,seDesirability,performanceMeasure,meanSVM,seSVM)
+  names(output)=c("Parameters","Mean","SE","Performance.Measures","meanPM","sePM")
   return(output)
 }
+
 
 #................................LDA...............................
 cvError.LDA=function(X,Y,k=5,mLDA=mLDA)
@@ -197,7 +266,7 @@ cvError.LDA=function(X,Y,k=5,mLDA=mLDA)
   
   #Fit model and estimate error
   for(i in 1:nFolds){
-    assign(paste("F",i,sep=""),data[unlist(rowsFold[[i]]),])
+    assign(paste("F",i,sep=""),data[unlist(Folds[[i]]),])
     testing=get(paste("F",i,sep=""))
     trainingRows=setdiff(1:nrow(data),as.numeric(row.names(testing)))
     training=data[trainingRows,]
@@ -238,8 +307,10 @@ cvError.LDA=function(X,Y,k=5,mLDA=mLDA)
   performanceMeasure=round(performanceMeasure,4)
   meanDesirability=unname(meanLDA[length(meanLDA)])
   seDesirability=unname(seLDA[length(meanLDA)])
-  output=list(meanDesirability,seDesirability,performanceMeasure,meanLDA,seLDA)
-  names(output)=c("Mean","SE","Performance.Measures","meanPM","sePM")
+  parameters=c(Data,mLDA)
+  names(parameters)=c("Data","mLDA")
+  output=list(parameters,meanDesirability,seDesirability,performanceMeasure,meanLDA,seLDA)
+  names(output)=c("Parameters","Mean","SE","Performance.Measures","meanPM","sePM")
   return(output)
 }
 
@@ -296,8 +367,10 @@ cvError.Log=function(X,Y,k=5,mLink=mLink,threshold=threshold)
   performanceMeasure=round(performanceMeasure,4)
   meanDesirability=unname(meanLR[length(meanLR)])
   seDesirability=unname(seLR[length(meanLR)])
-  output=list(meanDesirability,seDesirability,performanceMeasure,meanLR,seLR)
-  names(output)=c("Mean","SE","Performance.Measures","meanPM","sePM")
+  parameters=c(mLink,threshold)
+  names(parameters)=c("mLink","threshold")
+  output=list(parameters,meanDesirability,seDesirability,performanceMeasure,meanLR,seLR)
+  names(output)=c("Parameters","Mean","SE","Performance.Measures","meanPM","sePM")
   return(output)
 }
 
