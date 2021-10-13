@@ -95,8 +95,8 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
         for (maxDepth in c(6,8,10)){
           params=paste(Data,"-",minSplit,"-",minBucket,"-",Cp,"-",maxDepth)
           rPART_mod[[params]]=cvError.RPART(minsplit=minSplit, minbucket=minBucket,cp=Cp,maxdepth=maxDepth)
-          rpartResultsComplete=rbind(rpartResultsComplete,data.frame(Data,Parameters=paste("minSplit =",minSplit,"minBucket =",minBucket,"Cp =", Cp,"maxDepth =", maxDepth),t(rPART_mod[[params]]$meanPM),t(rPART_mod[[params]]$sePM,rPART_mod[[params]]$SE))
-          rPART_folds[[params]]=rPART_mod[[params]]$Performance.Measures
+          rpartResultsComplete=rbind(rpartResultsComplete,data.frame(Data,Parameters=paste("minSplit =",minSplit,"minBucket =",minBucket,"Cp =", Cp,"maxDepth =", maxDepth),t(rPART_mod[[params]]$meanPM),t(rPART_mod[[params]]$sePM),rPART_mod[[params]]$SE))
+                                     rPART_folds[[params]]=rPART_mod[[params]]$Performance.Measures
         }}}}}
 
 colnames(rpartResultsComplete)[ncol(rpartResultsComplete)]<- "Desirability.SE"
@@ -117,8 +117,8 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
   for (mLDA in c("moment","mle","t")){
     params=paste(Data,"-",mLink,"-",threshold)
     LDA_mod[[params]]=cvError.LDA(mLDA=mLDA)
-    LDAResultsComplete=rbind(LDAResultsComplete, data.frame(Data,Parameters=paste("mLDA =",mLDA),t(LDA_mod[[params]]$meanPM),t(LDA_mod[[params]]$sePM,LDA_mod[[params]]$SE))
-    LDA_folds[[params]]=list(LDA_mod[[params]]$Performance.Measures)
+    LDAResultsComplete=rbind(LDAResultsComplete, data.frame(Data,Parameters=paste("mLDA =",mLDA),t(LDA_mod[[params]]$meanPM),t(LDA_mod[[params]]$sePM),LDA_mod[[params]]$SE))
+                             LDA_folds[[params]]=list(LDA_mod[[params]]$Performance.Measures)
   }}
 
 colnames(LDAResultsComplete)[ncol(LDAResultsComplete)]<- "Desirability.SE"
@@ -144,7 +144,7 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
         for(Degree in 1:2) {
           params=paste(Data,"-",Type,"-",Kernel,"-",Degree)
           SVM_mod[[params]]=cvError.SVMpoly(type=Type,kernel=Kernel,degree=Degree)
-          SVMResultsComplete=rbind(SVMResultsComplete, data.frame(Data,Parameters=paste("Type =",Type,"Kernel =",Kernel,"Degree =", Degree), t(SVM_mod[[params]]$meanPM),t(SVM_mod[[params]]$sePM, SVM_mod[[params]]$SE))
+          SVMResultsComplete=rbind(SVMResultsComplete, data.frame(Data,Parameters=paste("Type =",Type,"Kernel =",Kernel,"Degree =", Degree), t(SVM_mod[[params]]$meanPM),t(SVM_mod[[params]]$sePM), SVM_mod[[params]]$SE))
         }}
       else {
         params=paste(Data,"-",Type,"-",Kernel,"-","NA")
@@ -152,7 +152,7 @@ for (Data in c("ACE","CFS","GAFS","RFE_RF","RFE_NB","RFE_CF")){
         SVMResultsComplete=rbind(SVMResultsComplete, data.frame(Data,Parameters=paste("Type =",Type,"Kernel =",Kernel,"Degree =", Degree="-"), t(SVM_mod[[params]]$meanPM),t(SVM_mod[[params]]$sePM), SVM_mod[[params]]$SE))
       }
       SVM_folds[[params]]=SVM_mod[[params]]$Performance.Measures
-      }}}
+    }}}
 
 colnames(SVMResultsComplete)[ncol(SVMResultsComplete)]<- "Desirability.SE"
 SVM=na.omit(SVMResultsComplete)
@@ -170,12 +170,12 @@ LogResultsComplete=NULL
 for (Data in c("ACE","GAFS","RFE_RF","RFE_NB","RFE_CF")){#no CFS dataset because data caused trouble
   data = dataResample[[Data]] 
   for (mLink in c("logit","probit","cauchit")){
-      for (threshold in seq(0.4,0.9,0.05)){
-        params=paste(Data,"-",mLink,"-",threshold)
-        Log_mod[[params]]=cvError.Log(mLink=mLink,threshold=threshold)
-        LogResultsComplete=rbind(LogResultsComplete, data.frame(Data,Parameters=paste("mLink =",mLink,"threshold =",threshold),t(Log_mod[[params]]$meanPM),t(Log_mod[[params]]$sePM),Log_mod[[params]]$SE))
-        Log_folds[[params]]=list(Log_mod[[params]]$Parameters,Log_mod[[params]]$Performance.Measures)
-      }}}
+    for (threshold in seq(0.4,0.9,0.05)){
+      params=paste(Data,"-",mLink,"-",threshold)
+      Log_mod[[params]]=cvError.Log(mLink=mLink,threshold=threshold)
+      LogResultsComplete=rbind(LogResultsComplete, data.frame(Data,Parameters=paste("mLink =",mLink,"threshold =",threshold),t(Log_mod[[params]]$meanPM),t(Log_mod[[params]]$sePM),Log_mod[[params]]$SE))
+      Log_folds[[params]]=list(Log_mod[[params]]$Parameters,Log_mod[[params]]$Performance.Measures)
+    }}}
 
 colnames(LogResultsComplete)[ncol(LogResultsComplete)]<- "Desirability.SE"
 LogReg=na.omit(LogResultsComplete)
@@ -186,7 +186,7 @@ LogReg=filter(LogReg,Desirability>=maxDesirability-SE.maxDesirability)
 resultsLogReg=mutate(LogReg,model="LogReg")
 
 -----------
-write.table(rf,"ComparisonsRF.csv",row.names=FALSE,sep=",")
+  write.table(rf,"ComparisonsRF.csv",row.names=FALSE,sep=",")
 write.table(rpart,"ComparisonsRPART.csv",row.names=FALSE,sep=",")
 write.table(LDA,"ComparisonsLDA.csv",row.names=FALSE,sep=",")
 write.table(LogReg,"ComparisonsLR.csv",row.names=FALSE,sep=",")
